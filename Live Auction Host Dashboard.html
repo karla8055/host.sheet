@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Auction Host Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(to bottom right, #0f172a, #1e293b, #0f172a);
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background-color: #1e293b;
+            border-bottom: 1px solid #475569;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-content {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .btn {
+            background-color: #2563eb;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #1d4ed8;
+        }
+        
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            gap: 30px;
+        }
+        
+        .sidebar {
+            background-color: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 12px;
+            padding: 25px;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+        
+        .sidebar h2 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            width: 100%;
+            background-color: #334155;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .host-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 500px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        
+        .host-btn {
+            background-color: #334155;
+            color: #cbd5e1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .host-btn:hover {
+            background-color: #475569;
+        }
+        
+        .host-btn.active {
+            background-color: #2563eb;
+            color: white;
+        }
+        
+        .all-hosts-btn {
+            background-color: #334155;
+            color: #cbd5e1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            transition: all 0.3s;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .all-hosts-btn:hover {
+            background-color: #475569;
+        }
+        
+        .all-hosts-btn.active {
+            background-color: #2563eb;
+            color: white;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .main-content h2 {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .stat-card {
+            background-color: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .stat-label {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .stat-value.green { color: #4ade80; }
+        .stat-value.blue { color: #60a5fa; }
+        .stat-value.purple { color: #a78bfa; }
+        .stat-value.orange { color: #fb923c; }
+        
+        .table-container {
+            background-color: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+        }
+        
+        .table-container h3 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #475569;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #475569;
+        }
+        
+        tr:hover {
+            background-color: #334155;
+        }
+        
+        .loading {
+            color: #94a3b8;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .error {
+            color: #ef4444;
+            background-color: #7f1d1d;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .success {
+            color: #4ade80;
+            background-color: #1b4d1b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: #1e293b;
+            margin: 10% auto;
+            padding: 30px;
+            border: 1px solid #475569;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+        }
+        
+        .close {
+            color: #94a3b8;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: white;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            background-color: #334155;
+            color: white;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 5px #2563eb;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .form-buttons button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .btn-save {
+            background-color: #2563eb;
+            color: white;
+        }
+        
+        .btn-save:hover {
+            background-color: #1d4ed8;
+        }
+        
+        .btn-cancel {
+            background-color: #475569;
+            color: white;
+        }
+        
+        .btn-cancel:hover {
+            background-color: #64748b;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #475569;
+        }
+        
+        .tab-btn {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab-btn.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>🏆 Live Auction Host Dashboard</h1>
+            <button class="btn" onclick="openAddDataModal()">➕ Add Data</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <h2>Hosts</h2>
+            <input type="text" class="search-input" placeholder="Search..." id="searchInput">
+            <div class="host-list" id="hostList"></div>
+            <button class="all-hosts-btn active" id="allHostsBtn">📊 All Hosts</button>
+        </div>
+
+        <div class="main-content" id="mainContent">
+            <div class="loading">Loading your data...</div>
+        </div>
+    </div>
+
+    <div id="addDataModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddDataModal()">&times;</span>
+            <h2>Add New Session Data</h2>
+            
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('manual')">Manual Entry</button>
+                <button class="tab-btn" onclick="switchTab('csv')">Paste CSV</button>
+            </div>
+            
+            <div id="manual" class="tab-content active">
+                <div class="form-group">
+                    <label>Host *</label>
+                    <select id="hostSelect" required>
+                        <option value="">Select a host...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Session Date (YYYY-MM-DD) *</label>
+                    <input type="date" id="sessionDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Amount Sold *</label>
+                    <input type="number" id="amountSold" required step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Avg Bid Amount</label>
+                    <input type="number" id="avgBidAmount" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Auction Count</label>
+                    <input type="number" id="auctionCount">
+                </div>
+                <div class="form-group">
+                    <label>Viewership</label>
+                    <input type="number" id="viewership">
+                </div>
+                <div class="form-buttons">
+                    <button class="btn-save" onclick="addSingleRow()">Save Session</button>
+                    <button class="btn-cancel" onclick="closeAddDataModal()">Cancel</button>
+                </div>
+            </div>
+            
+            <div id="csv" class="tab-content">
+                <div class="form-group">
+                    <label>Paste CSV Data</label>
+                    <textarea id="csvData" placeholder="host_id,session_date,amount_sold,avg_bid_amount,auction_count,viewership&#10;ALEC,2026-06-24,1500,7.50,200,125"></textarea>
+                </div>
+                <p style="color: #94a3b8; font-size: 12px; margin-bottom: 15px;">
+                    Expected format: host_id, session_date, amount_sold, avg_bid_amount, auction_count, viewership
+                </p>
+                <div class="form-buttons">
+                    <button class="btn-save" onclick="addCSVData()">Import CSV</button>
+                    <button class="btn-cancel" onclick="closeAddDataModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://tkpmrrculaofesknrwoq.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_ZBLUiVqogfJU8dViMeCo5w_q2jDZw70';
+        
+        let allHosts = [];
+        let allSessions = [];
+        let selectedHost = null;
+        let searchQuery = '';
+        let hostIdMap = {};
+
+        async function fetchFromSupabase(table) {
+            try {
+                const url = `${SUPABASE_URL}/rest/v1/${table}?select=*`;
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error(`Error fetching ${table}:`, error);
+                throw error;
+            }
+        }
+
+        async function insertToSupabase(data) {
+            try {
+                const url = `${SUPABASE_URL}/rest/v1/daily_sessions`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    const error = await response.text();
+                    throw new Error(error);
+                }
+                return true;
+            } catch (error) {
+                console.error('Error inserting data:', error);
+                throw error;
+            }
+        }
+
+        async function init() {
+            try {
+                const hostsData = await fetchFromSupabase('hosts');
+                const sessionsData = await fetchFromSupabase('daily_sessions');
+                
+                allHosts = hostsData.map(h => h.name).sort();
+                hostIdMap = {};
+                hostsData.forEach(h => hostIdMap[h.name] = h.id);
+                
+                allSessions = sessionsData.map(session => {
+                    const host = hostsData.find(h => h.id === session.host_id);
+                    return {
+                        ...session,
+                        host_name: host ? host.name : 'Unknown'
+                    };
+                });
+                
+                populateHostSelect();
+                renderHostList();
+                showAllHosts();
+                setupEventListeners();
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('mainContent').innerHTML = `
+                    <div class="error">
+                        <strong>Error loading data:</strong> ${error.message}<br><br>
+                        Make sure Supabase credentials are correct and you have data added.
+                    </div>
+                `;
+            }
+        }
+
+        function populateHostSelect() {
+            const select = document.getElementById('hostSelect');
+            select.innerHTML = '<option value="">Select a host...</option>';
+            allHosts.forEach(host => {
+                const option = document.createElement('option');
+                option.value = host;
+                option.textContent = host;
+                select.appendChild(option);
+            });
+        }
+
+        function setupEventListeners() {
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                searchQuery = e.target.value;
+                renderHostList();
+            });
+
+            document.getElementById('allHostsBtn').addEventListener('click', () => {
+                selectedHost = null;
+                document.getElementById('allHostsBtn').classList.add('active');
+                document.querySelectorAll('.host-btn').forEach(btn => btn.classList.remove('active'));
+                showAllHosts();
+            });
+        }
+
+        function renderHostList() {
+            const hostList = document.getElementById('hostList');
+            hostList.innerHTML = '';
+
+            const filtered = allHosts.filter(h => 
+                h.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+
+            filtered.forEach(host => {
+                const btn = document.createElement('button');
+                btn.className = `host-btn ${selectedHost === host ? 'active' : ''}`;
+                btn.textContent = host;
+                btn.onclick = () => selectHost(host);
+                hostList.appendChild(btn);
+            });
+        }
+
+        function selectHost(host) {
+            selectedHost = host;
+            document.getElementById('allHostsBtn').classList.remove('active');
+            document.querySelectorAll('.host-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent === host);
+            });
+            showHostStats(host);
+        }
+
+        function showHostStats(host) {
+            const hostSessions = allSessions.filter(s => s.host_name === host);
+            
+            if (hostSessions.length === 0) {
+                document.getElementById('mainContent').innerHTML = `<div class="loading">No data found for ${host}</div>`;
+                return;
+            }
+            
+            const stats = {
+                name: host,
+                totalSales: hostSessions.reduce((sum, s) => sum + (s.amount_sold || 0), 0),
+                avgBidAmount: hostSessions.length > 0 ? (hostSessions.reduce((sum, s) => sum + (s.avg_bid_amount || 0), 0) / hostSessions.length).toFixed(2) : 0,
+                totalAuctions: hostSessions.reduce((sum, s) => sum + (s.auction_count || 0), 0),
+                totalSessions: hostSessions.length,
+                avgViewership: hostSessions.length > 0 ? Math.round(hostSessions.reduce((sum, s) => sum + (s.viewership || 0), 0) / hostSessions.length) : 0,
+            };
+
+            let html = `<h2>${host}'s Stats</h2>`;
+            html += `<div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Sales</div>
+                    <div class="stat-value green">$${stats.totalSales.toLocaleString()}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Bid</div>
+                    <div class="stat-value blue">$${stats.avgBidAmount}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Auctions</div>
+                    <div class="stat-value purple">${stats.totalAuctions}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Viewers</div>
+                    <div class="stat-value orange">${stats.avgViewership}</div>
+                </div>
+            </div>`;
+
+            if (hostSessions.length > 0) {
+                html += `<div class="table-container">
+                    <h3>Session Details</h3>
+                    <table>
+                        <tr>
+                            <th>Date</th>
+                            <th>Sales</th>
+                            <th>Avg Bid</th>
+                            <th>Auctions</th>
+                            <th>Viewers</th>
+                        </tr>`;
+                
+                hostSessions.forEach(session => {
+                    html += `<tr>
+                        <td>${session.session_date}</td>
+                        <td style="color: #4ade80;">$${(session.amount_sold || 0).toLocaleString()}</td>
+                        <td style="color: #60a5fa;">$${(session.avg_bid_amount || 0).toFixed(2)}</td>
+                        <td style="color: #a78bfa;">${session.auction_count || 0}</td>
+                        <td>${session.viewership || 0}</td>
+                    </tr>`;
+                });
+                html += `</table></div>`;
+            }
+
+            document.getElementById('mainContent').innerHTML = html;
+        }
+
+        function showAllHosts() {
+            const comparison = allHosts.map(hostName => {
+                const hostSessions = allSessions.filter(s => s.host_name === hostName);
+                return {
+                    name: hostName,
+                    sales: hostSessions.reduce((sum, s) => sum + (s.amount_sold || 0), 0),
+                    avgBid: hostSessions.length > 0 ? (hostSessions.reduce((sum, s) => sum + (s.avg_bid_amount || 0), 0) / hostSessions.length).toFixed(2) : 0,
+                    auctions: hostSessions.reduce((sum, s) => sum + (s.auction_count || 0), 0),
+                    sessions: hostSessions.length,
+                };
+            }).sort((a, b) => b.sales - a.sales);
+
+            let html = `<h2>Host Rankings</h2>`;
+            html += `<div class="stats-grid">`;
+            comparison.slice(0, 4).forEach(host => {
+                html += `<div class="stat-card" style="cursor: pointer;" onclick="selectHost('${host.name}')">
+                    <div class="stat-label">${host.name}</div>
+                    <div class="stat-value green">$${host.sales.toLocaleString()}</div>
+                    <div class="stat-label">${host.sessions} sessions</div>
+                </div>`;
+            });
+            html += `</div>`;
+
+            html += `<div class="table-container">
+                <h3>All Hosts Summary</h3>
+                <table>
+                    <tr>
+                        <th>Host</th>
+                        <th>Total Sales</th>
+                        <th>Avg Bid</th>
+                        <th>Auctions</th>
+                        <th>Sessions</th>
+                    </tr>`;
+            
+            comparison.forEach(host => {
+                html += `<tr onclick="selectHost('${host.name}')" style="cursor: pointer;">
+                    <td><strong>${host.name}</strong></td>
+                    <td style="color: #4ade80;">$${host.sales.toLocaleString()}</td>
+                    <td style="color: #60a5fa;">$${host.avgBid}</td>
+                    <td style="color: #a78bfa;">${host.auctions}</td>
+                    <td style="color: #fb923c;">${host.sessions}</td>
+                </tr>`;
+            });
+            
+            html += `</table></div>`;
+
+            document.getElementById('mainContent').innerHTML = html;
+        }
+
+        function openAddDataModal() {
+            document.getElementById('addDataModal').style.display = 'block';
+            setTodayDate();
+        }
+
+        function closeAddDataModal() {
+            document.getElementById('addDataModal').style.display = 'none';
+            resetForm();
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function setTodayDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('sessionDate').value = today;
+        }
+
+        function resetForm() {
+            document.getElementById('hostSelect').value = '';
+            document.getElementById('amountSold').value = '';
+            document.getElementById('avgBidAmount').value = '';
+            document.getElementById('auctionCount').value = '';
+            document.getElementById('viewership').value = '';
+            document.getElementById('csvData').value = '';
+        }
+
+        async function addSingleRow() {
+            const host = document.getElementById('hostSelect').value;
+            const date = document.getElementById('sessionDate').value;
+            const sales = parseFloat(document.getElementById('amountSold').value);
+
+            if (!host || !date || !sales) {
+                alert('Please fill in required fields (Host, Date, Amount Sold)');
+                return;
+            }
+
+            try {
+                const data = {
+                    host_id: hostIdMap[host],
+                    session_date: date,
+                    amount_sold: sales,
+                    avg_bid_amount: parseFloat(document.getElementById('avgBidAmount').value) || null,
+                    auction_count: parseInt(document.getElementById('auctionCount').value) || null,
+                    viewership: parseInt(document.getElementById('viewership').value) || null
+                };
+
+                await insertToSupabase(data);
+                alert('✓ Session added successfully!');
+                closeAddDataModal();
+                location.reload();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function addCSVData() {
+            const csvText = document.getElementById('csvData').value.trim();
+            if (!csvText) {
+                alert('Please paste CSV data');
+                return;
+            }
+
+            const lines = csvText.split('\n').filter(line => line.trim());
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            const rows = lines.slice(1);
+
+            try {
+                for (const row of rows) {
+                    const values = row.split(',').map(v => v.trim());
+                    const obj = {};
+                    headers.forEach((header, idx) => {
+                        obj[header] = values[idx];
+                    });
+
+                    const hostName = obj.host_id;
+                    if (!hostName || !hostIdMap[hostName]) {
+                        alert(`Host not found: ${hostName}`);
+                        return;
+                    }
+
+                    const data = {
+                        host_id: hostIdMap[hostName],
+                        session_date: obj.session_date,
+                        amount_sold: parseFloat(obj.amount_sold) || 0,
+                        avg_bid_amount: parseFloat(obj.avg_bid_amount) || null,
+                        auction_count: parseInt(obj.auction_count) || null,
+                        viewership: parseInt(obj.viewership) || null
+                    };
+
+                    await insertToSupabase(data);
+                }
+
+                alert(`✓ Successfully added ${rows.length} sessions!`);
+                closeAddDataModal();
+                location.reload();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('addDataModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
