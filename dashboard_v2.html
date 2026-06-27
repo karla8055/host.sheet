@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Auction Host Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(to bottom right, #0f172a, #1e293b, #0f172a);
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background-color: #1e293b;
+            border-bottom: 1px solid #475569;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-content {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .upload-btn {
+            background-color: #2563eb;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .upload-btn:hover {
+            background-color: #1d4ed8;
+        }
+        
+        .upload-input {
+            display: none;
+        }
+        
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            gap: 30px;
+        }
+        
+        .sidebar {
+            background-color: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 12px;
+            padding: 25px;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+        
+        .sidebar h2 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            width: 100%;
+            background-color: #334155;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .search-input::placeholder {
+            color: #94a3b8;
+        }
+        
+        .host-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 500px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        
+        .host-btn {
+            background-color: #334155;
+            color: #cbd5e1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .host-btn:hover {
+            background-color: #475569;
+        }
+        
+        .host-btn.active {
+            background-color: #2563eb;
+            color: white;
+        }
+        
+        .all-hosts-btn {
+            background-color: #334155;
+            color: #cbd5e1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .all-hosts-btn:hover {
+            background-color: #475569;
+        }
+        
+        .all-hosts-btn.active {
+            background-color: #2563eb;
+            color: white;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .main-content h2 {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .stat-card {
+            background-color: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .stat-label {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value.green { color: #4ade80; }
+        .stat-value.blue { color: #60a5fa; }
+        .stat-value.purple { color: #a78bfa; }
+        .stat-value.orange { color: #fb923c; }
+        
+        .table-container {
+            background-color: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+        }
+        
+        .table-container h3 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #475569;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #475569;
+        }
+        
+        tr:hover {
+            background-color: #334155;
+        }
+        
+        tr.clickable {
+            cursor: pointer;
+        }
+        
+        .status-message {
+            color: #4ade80;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: relative;
+                top: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>🏆 Live Auction Host Dashboard</h1>
+            <label class="upload-btn">
+                📤 Upload CSV
+                <input type="file" class="upload-input" accept=".csv,.xlsx">
+            </label>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <h2>Hosts</h2>
+            <input type="text" class="search-input" placeholder="Search..." id="searchInput">
+            <div class="host-list" id="hostList"></div>
+            <button class="all-hosts-btn active" id="allHostsBtn">📊 All Hosts</button>
+        </div>
+
+        <div class="main-content" id="mainContent">
+            <!-- Content will be generated here -->
+        </div>
+    </div>
+
+    <script>
+        // Sample data
+        const sampleData = {
+            sessions: [
+                { host: 'ALEC', date: '2026-06-22', amountSold: 2251, avgBid: 8.59, auctions: 260, timeHosted: 150, viewership: 114 },
+                { host: 'BRYAN', date: '2026-06-22', amountSold: 1723, avgBid: 9.04, auctions: 188, timeHosted: 115, viewership: 112 },
+                { host: 'KIERAN', date: '2026-06-22', amountSold: 1428, avgBid: 6.42, auctions: 221, timeHosted: 123, viewership: 120 },
+                { host: 'DERON', date: '2026-06-22', amountSold: 1956, avgBid: 7.80, auctions: 251, timeHosted: 140, viewership: 118 },
+                { host: 'ALEX', date: '2026-06-22', amountSold: 1834, avgBid: 8.15, auctions: 225, timeHosted: 135, viewership: 125 },
+                { host: 'ALEC', date: '2026-06-23', amountSold: 2229, avgBid: 7.33, auctions: 295, timeHosted: 152, viewership: 101 },
+                { host: 'BRYAN', date: '2026-06-23', amountSold: 1339, avgBid: 7.00, auctions: 192, timeHosted: 118, viewership: 132 },
+                { host: 'KIERAN', date: '2026-06-23', amountSold: 1692, avgBid: 7.15, auctions: 237, timeHosted: 128, viewership: 115 },
+            ]
+        };
+
+        const hosts = ['ALEC', 'BRYAN', 'KIERAN', 'DERON', 'ALEX', 'ALEXI', 'ABBIE', 'SAOIRSE'];
+        let selectedHost = null;
+        let searchQuery = '';
+
+        // Initialize
+        function init() {
+            renderHostList();
+            showAllHosts();
+            setupEventListeners();
+        }
+
+        function setupEventListeners() {
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                searchQuery = e.target.value;
+                renderHostList();
+            });
+
+            document.getElementById('allHostsBtn').addEventListener('click', () => {
+                selectedHost = null;
+                document.getElementById('allHostsBtn').classList.add('active');
+                document.querySelectorAll('.host-btn').forEach(btn => btn.classList.remove('active'));
+                showAllHosts();
+            });
+
+            document.querySelector('.upload-input').addEventListener('change', (e) => {
+                if (e.target.files[0]) {
+                    alert('✓ File uploaded! Ready for data integration.');
+                }
+            });
+        }
+
+        function renderHostList() {
+            const hostList = document.getElementById('hostList');
+            hostList.innerHTML = '';
+
+            const filtered = hosts.filter(h => 
+                h.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+
+            filtered.forEach(host => {
+                const btn = document.createElement('button');
+                btn.className = `host-btn ${selectedHost === host ? 'active' : ''}`;
+                btn.textContent = host;
+                btn.onclick = () => selectHost(host);
+                hostList.appendChild(btn);
+            });
+        }
+
+        function selectHost(host) {
+            selectedHost = host;
+            document.getElementById('allHostsBtn').classList.remove('active');
+            document.querySelectorAll('.host-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent === host);
+            });
+            showHostStats(host);
+        }
+
+        function showHostStats(host) {
+            const hostSessions = sampleData.sessions.filter(s => s.host === host);
+            
+            const stats = {
+                name: host,
+                totalSales: hostSessions.reduce((sum, s) => sum + s.amountSold, 0),
+                avgBidAmount: hostSessions.length > 0 ? (hostSessions.reduce((sum, s) => sum + s.avgBid, 0) / hostSessions.length).toFixed(2) : 0,
+                totalAuctions: hostSessions.reduce((sum, s) => sum + s.auctions, 0),
+                totalSessions: hostSessions.length,
+                avgViewership: hostSessions.length > 0 ? Math.round(hostSessions.reduce((sum, s) => sum + s.viewership, 0) / hostSessions.length) : 0,
+                totalTimeHosted: hostSessions.reduce((sum, s) => sum + s.timeHosted, 0),
+                avgSalesPerSession: hostSessions.length > 0 ? (hostSessions.reduce((sum, s) => sum + s.amountSold, 0) / hostSessions.length).toFixed(2) : 0
+            };
+
+            let html = `<h2>${host}'s Stats</h2>`;
+            html += `<div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Sales</div>
+                    <div class="stat-value green">$${stats.totalSales.toLocaleString()}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Bid</div>
+                    <div class="stat-value blue">$${stats.avgBidAmount}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Auctions</div>
+                    <div class="stat-value purple">${stats.totalAuctions}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Viewers</div>
+                    <div class="stat-value orange">${stats.avgViewership}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Sessions</div>
+                    <div class="stat-value">${stats.totalSessions}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Time</div>
+                    <div class="stat-value">${stats.totalTimeHosted} min</div>
+                </div>
+            </div>`;
+
+            if (hostSessions.length > 0) {
+                html += `<div class="table-container">
+                    <h3>Session Details</h3>
+                    <table>
+                        <tr>
+                            <th>Date</th>
+                            <th>Sales</th>
+                            <th>Avg Bid</th>
+                            <th>Auctions</th>
+                            <th>Time</th>
+                            <th>Viewers</th>
+                        </tr>`;
+                
+                hostSessions.forEach(session => {
+                    html += `<tr>
+                        <td>${session.date}</td>
+                        <td style="color: #4ade80;">$${session.amountSold.toLocaleString()}</td>
+                        <td style="color: #60a5fa;">$${session.avgBid.toFixed(2)}</td>
+                        <td style="color: #a78bfa;">${session.auctions}</td>
+                        <td style="color: #fb923c;">${session.timeHosted}m</td>
+                        <td>${session.viewership}</td>
+                    </tr>`;
+                });
+                html += `</table></div>`;
+            }
+
+            document.getElementById('mainContent').innerHTML = html;
+        }
+
+        function showAllHosts() {
+            const comparison = hosts.map(hostName => {
+                const hostSessions = sampleData.sessions.filter(s => s.host === hostName);
+                return {
+                    name: hostName,
+                    sales: hostSessions.reduce((sum, s) => sum + s.amountSold, 0),
+                    avgBid: hostSessions.length > 0 ? (hostSessions.reduce((sum, s) => sum + s.avgBid, 0) / hostSessions.length).toFixed(2) : 0,
+                    auctions: hostSessions.reduce((sum, s) => sum + s.auctions, 0),
+                    sessions: hostSessions.length,
+                };
+            }).sort((a, b) => b.sales - a.sales);
+
+            let html = `<h2>Host Rankings</h2>`;
+            html += `<div class="stats-grid">`;
+            comparison.slice(0, 4).forEach(host => {
+                html += `<div class="stat-card" style="cursor: pointer;" onclick="selectHost('${host.name}')">
+                    <div class="stat-label">${host.name}</div>
+                    <div class="stat-value green">$${host.sales.toLocaleString()}</div>
+                    <div class="stat-label">${host.sessions} sessions</div>
+                </div>`;
+            });
+            html += `</div>`;
+
+            html += `<div class="table-container">
+                <h3>All Hosts Summary</h3>
+                <table>
+                    <tr>
+                        <th>Host</th>
+                        <th>Total Sales</th>
+                        <th>Avg Bid</th>
+                        <th>Auctions</th>
+                        <th>Sessions</th>
+                    </tr>`;
+            
+            comparison.forEach(host => {
+                html += `<tr class="clickable" onclick="selectHost('${host.name}')">
+                    <td><strong>${host.name}</strong></td>
+                    <td style="color: #4ade80;">$${host.sales.toLocaleString()}</td>
+                    <td style="color: #60a5fa;">$${host.avgBid}</td>
+                    <td style="color: #a78bfa;">${host.auctions}</td>
+                    <td style="color: #fb923c;">${host.sessions}</td>
+                </tr>`;
+            });
+            
+            html += `</table></div>`;
+
+            document.getElementById('mainContent').innerHTML = html;
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
